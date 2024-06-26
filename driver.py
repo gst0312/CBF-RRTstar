@@ -1,4 +1,4 @@
-from original_polygon import *
+from log_reg import *
 
 # 使用示例
 points1 = [[5, 71], [18, 74], [21, 64], [7, 62]]
@@ -10,3 +10,4 @@ points5 = [[50, 17], [56, 20], [57, 16], [52, 14]]
 obs_list = [points1, points2, points3, points4, points5]
 sd = 4
 draw_poly(obs_list, sd)
+# beta_opts = multi_classify(obs_list, sd)

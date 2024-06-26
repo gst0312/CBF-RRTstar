@@ -119,51 +119,60 @@ def is_in_poly(p, points):
     return is_in
 
 
-# Generate a grid of points and determine if each point is inside the given polygon.
-def draw_poly(obs, sd):
-    # Generate initial x and y coordinates for the grid
+def each_poly(points, sd):
     x_init = np.arange(0, 105, 5)
     y_init = np.arange(0, 84, 4)
 
-    # Create a meshgrid from the initial x and y coordinates
     x_p, y_p = np.meshgrid(x_init, y_init)
     x_p = np.ravel(x_p)
     y_p = np.ravel(y_p)
     length = len(x_p)
 
-    # Initialize an array to store the classification values
     p_value = np.zeros_like(x_p)
 
-    new_all_points = []
-    xs_list = []
-    ys_list = []
-    for points in obs:
-        x, y, new_points = expand_poly(points, sd)
-        xs, ys = sample_points(x, y)
-        new_all_points.append(new_points)
-        x_p = np.append(x_p, xs)
-        y_p = np.append(y_p, ys)
-        p_s = np.ones_like(xs)
-        p_value = np.append(p_value, p_s)
+    x, y, new_points = expand_poly(points, sd)
+    xs, ys = sample_points(x, y)
+    x_p = np.append(x_p, xs)
+    y_p = np.append(y_p, ys)
+    p_s = np.ones_like(xs)
+    p_value = np.append(p_value, p_s)
 
-    # Loop through each grid point to determine if it is inside any of the polygons
     for i in range(length):
         p = [x_p[i], y_p[i]]
-        for new_points in new_all_points:
-            if is_in_poly(p, new_points):
-                p_value[i] = 1
-                break
+        if is_in_poly(p, new_points):
+            p_value[i] = 1
 
-    # 绘制图形
+    return x_p, y_p, p_value, new_points
+
+
+# Generate a grid of points and determine if each point is inside the given polygon.
+def draw_poly(obs, sd):
+    x_p = []
+    y_p = []
+    p_value = []
+    new_all_points = []
+
+    for points in obs:
+        x_p1, y_p1, p_value1, new_points = each_poly(points, sd)
+        new_all_points.append(new_points)
+        x_p = np.append(x_p, x_p1)
+        y_p = np.append(y_p, y_p1)
+        p_value = np.append(p_value, p_value1)
+
     plt.figure(figsize=(10, 8))
+
     for new_points in new_all_points:
         plt.plot(new_points[:, 0], new_points[:, 1], 'r-')
+
     plt.scatter(x_p[p_value == 0], y_p[p_value == 0], c='blue', label='Free Space', s=3)
     plt.scatter(x_p[p_value == 1], y_p[p_value == 1], c='red', label='Obstacle', s=3)
-    plt.legend(fontsize='large', markerscale=5)
+
+    # 只在第一次绘制标签，避免重复
+    handles, labels = plt.gca().get_legend_handles_labels()
+    by_label = dict(zip(labels, handles))
+    plt.legend(by_label.values(), by_label.keys(), fontsize='large', markerscale=5)
+
     plt.xlabel('X')
     plt.ylabel('Y')
     plt.show()
 
-    # Return the updated grid points and their classification values
-    return x_p, y_p, p_value
