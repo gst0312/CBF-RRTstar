@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import math
 
+
 # Expand the given polygon by a specified safe distance to create a buffer zone around it
 def expand_poly(points, sd):
     points.append(points[0])  # add the first point to create a 'closed loop'
@@ -50,48 +51,6 @@ def expand_poly(points, sd):
     new_points = np.asarray(list(zip(Qi_x_list, Qi_y_list)))
     return Qi_x_list, Qi_y_list, new_points
 
-# Sample points along the edges of a polygon and add them to the list of vertices
-def sample_points(x, y):
-    # Initialize empty lists to store the additional sample points
-    xadd = []
-    yadd = []
-
-    # Convert the input x and y coordinates to numpy arrays
-    xs = np.asarray(x)
-    ys = np.asarray(y)
-
-    # Loop through each edge of the polygon (from each point to the next)
-    for i in range(len(xs) - 1):
-        if xs[i + 1] == xs[i]:  # Avoid division by zero
-            xtemp = np.repeat(xs[i], int(abs(ys[i + 1] - ys[i])))
-            ytemp = np.linspace(ys[i], ys[i + 1], int(abs(ys[i + 1] - ys[i])))
-        else:
-            # Calculate the slope of the current edge
-            slope = (ys[i + 1] - ys[i]) / (xs[i + 1] - xs[i])
-            # Calculate the length of the edge
-            length = math.sqrt(((ys[i + 1] - ys[i]) ** 2) + ((xs[i + 1] - xs[i]) ** 2))
-
-            if slope > 1e5 or slope < -1e5:  # Check if the slope is very large
-                # Calculate the inverse slope
-                inverse_slope = (xs[i + 1] - xs[i]) / (ys[i + 1] - ys[i])
-                # Generate sample points along the y direction
-                ytemp = np.linspace(ys[i], ys[i + 1], int(length))
-                xtemp = inverse_slope * (ytemp - ys[i]) + xs[i]
-            else:
-                # Generate sample points along the x direction
-                xtemp = np.linspace(xs[i], xs[i + 1], int(length))
-                ytemp = slope * (xtemp - xs[i]) + ys[i]
-
-        # Append the sample points to the lists
-        xadd = np.append(xadd, xtemp)
-        yadd = np.append(yadd, ytemp)
-
-    # Append the additional sample points to the original coordinates
-    xs = np.asanyarray(np.append(xs, xadd))
-    ys = np.asanyarray(np.append(ys, yadd))
-
-    # Return the updated x and y coordinates
-    return xs, ys
 
 # Determine if a point is inside a polygon using the ray-casting algorithm.
 def is_in_poly(p, points):
@@ -115,18 +74,14 @@ def is_in_poly(p, points):
                     is_in = not is_in
     return is_in
 
+
 # Generate a grid of points and determine if each point is inside the given polygon.
 def draw_poly(obs, sd):
     new_all_points = []
-    all_xs = []
-    all_ys = []
 
     for points in obs:
         x, y, new_points = expand_poly(points, sd)
-        xs, ys = sample_points(x, y)
         new_all_points.append(new_points)
-        all_xs.extend(xs)
-        all_ys.extend(ys)
 
     # Generate initial x and y coordinates for the grid
     x_init = np.arange(0, 105, 1)
@@ -148,15 +103,6 @@ def draw_poly(obs, sd):
                 p_value[i] = 1
                 break
 
-    # Append the original polygon vertices to the grid points
-    x_p = np.append(x_p, all_xs)
-    y_p = np.append(y_p, all_ys)
-
-    # Create an array of ones with the same length as the number of original vertices
-    p_s = np.ones(len(all_xs))
-
-    # Append the classification values for the original vertices to the grid points
-    p_value = np.append(p_value, p_s)
 
     # 绘制图形
     plt.figure(figsize=(10, 8))
