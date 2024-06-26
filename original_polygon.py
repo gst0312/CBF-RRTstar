@@ -52,6 +52,50 @@ def expand_poly(points, sd):
     return Qi_x_list, Qi_y_list, new_points
 
 
+# Sample points along the edges of a polygon and add them to the list of vertices
+def sample_points(x, y):
+    # Initialize empty lists to store the additional sample points
+    xadd = []
+    yadd = []
+
+    # Convert the input x and y coordinates to numpy arrays
+    xs = np.asarray(x)
+    ys = np.asarray(y)
+
+    # Loop through each edge of the polygon (from each point to the next)
+    for i in range(len(xs) - 1):
+        if xs[i + 1] == xs[i]:  # Avoid division by zero
+            xtemp = np.repeat(xs[i], int(abs(ys[i + 1] - ys[i])))
+            ytemp = np.linspace(ys[i], ys[i + 1], int(abs(ys[i + 1] - ys[i])))
+        else:
+            # Calculate the slope of the current edge
+            slope = (ys[i + 1] - ys[i]) / (xs[i + 1] - xs[i])
+            # Calculate the length of the edge
+            length = math.sqrt(((ys[i + 1] - ys[i]) ** 2) + ((xs[i + 1] - xs[i]) ** 2))
+
+            if slope > 1e5 or slope < -1e5:  # Check if the slope is very large
+                # Calculate the inverse slope
+                inverse_slope = (xs[i + 1] - xs[i]) / (ys[i + 1] - ys[i])
+                # Generate sample points along the y direction
+                ytemp = np.linspace(ys[i], ys[i + 1], int(length))
+                xtemp = inverse_slope * (ytemp - ys[i]) + xs[i]
+            else:
+                # Generate sample points along the x direction
+                xtemp = np.linspace(xs[i], xs[i + 1], int(length))
+                ytemp = slope * (xtemp - xs[i]) + ys[i]
+
+        # Append the sample points to the lists
+        xadd = np.append(xadd, xtemp)
+        yadd = np.append(yadd, ytemp)
+
+    # Append the additional sample points to the original coordinates
+    xs = np.asanyarray(np.append(xs, xadd))
+    ys = np.asanyarray(np.append(ys, yadd))
+
+    # Return the updated x and y coordinates
+    return xs, ys
+
+
 # Determine if a point is inside a polygon using the ray-casting algorithm.
 def is_in_poly(p, points):
     x = np.zeros(len(points))
@@ -77,40 +121,46 @@ def is_in_poly(p, points):
 
 # Generate a grid of points and determine if each point is inside the given polygon.
 def draw_poly(obs, sd):
-    new_all_points = []
-
-    for points in obs:
-        x, y, new_points = expand_poly(points, sd)
-        new_all_points.append(new_points)
-
     # Generate initial x and y coordinates for the grid
-    x_init = np.arange(0, 105, 1)
-    y_init = np.arange(0, 84, 1)
+    x_init = np.arange(0, 105, 5)
+    y_init = np.arange(0, 84, 4)
 
     # Create a meshgrid from the initial x and y coordinates
     x_p, y_p = np.meshgrid(x_init, y_init)
     x_p = np.ravel(x_p)
     y_p = np.ravel(y_p)
+    length = len(x_p)
 
     # Initialize an array to store the classification values
     p_value = np.zeros_like(x_p)
 
+    new_all_points = []
+    xs_list = []
+    ys_list = []
+    for points in obs:
+        x, y, new_points = expand_poly(points, sd)
+        xs, ys = sample_points(x, y)
+        new_all_points.append(new_points)
+        x_p = np.append(x_p, xs)
+        y_p = np.append(y_p, ys)
+        p_s = np.ones_like(xs)
+        p_value = np.append(p_value, p_s)
+
     # Loop through each grid point to determine if it is inside any of the polygons
-    for i in range(len(x_p)):
+    for i in range(length):
         p = [x_p[i], y_p[i]]
         for new_points in new_all_points:
             if is_in_poly(p, new_points):
                 p_value[i] = 1
                 break
 
-
     # 绘制图形
     plt.figure(figsize=(10, 8))
     for new_points in new_all_points:
         plt.plot(new_points[:, 0], new_points[:, 1], 'r-')
-    plt.scatter(x_p[p_value == 0], y_p[p_value == 0], c='blue', label='Free Space', s=1)
-    plt.scatter(x_p[p_value == 1], y_p[p_value == 1], c='red', label='Obstacle', s=1)
-    plt.legend()
+    plt.scatter(x_p[p_value == 0], y_p[p_value == 0], c='blue', label='Free Space', s=3)
+    plt.scatter(x_p[p_value == 1], y_p[p_value == 1], c='red', label='Obstacle', s=3)
+    plt.legend(fontsize='large', markerscale=5)
     plt.xlabel('X')
     plt.ylabel('Y')
     plt.show()
