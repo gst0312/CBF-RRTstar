@@ -15,6 +15,6 @@
 
   + safe distance to create a buffer zone around obstacles: `sd = 4`
 
-  + `draw_poly(obs_list, sd)`
+  + draw the grid map and obstacles: `draw_poly(obs_list, sd)`
 
 <img src="./results/originobs.png" width="600">
