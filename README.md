@@ -24,7 +24,7 @@
   + Constructing barrier functions h(x) and draw the contour to represent the obstacles.
   + Problems & future work: 
     + If the obstacles are too small, then the obstacle/free space ratio is too small, causing the simulating of polygons being affected.
-    + There are other points (mostly outside the map) that satisfy $$\beta z^T = 0$$, so as shown in the [figure](#image-anchor), there will be dots and lines other than just the obstacles.
+    + There are other points (mostly outside the map) that satisfy $$\beta z^T = 0$$ so as shown in the [figure](#image-anchor), there will be dots and lines other than just the obstacles.
     + Other problems such as local minima due to there may be indentation of some edges of the polygons.
 
 <a name="image-anchor"></a>
