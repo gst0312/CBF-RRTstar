@@ -1,6 +1,6 @@
 # CBF-RRTstar
 
-+ Sampled equidistant n points on the map and labeled each point either free space or obstacle.
++ Sampling equidistant n points on the map and labeled each point either free space or obstacle
 
   + obstacles points:
 
@@ -18,3 +18,14 @@
   + draw the grid map and obstacles: `draw_poly(obs_list, sd)`
 
 <img src="./results/originobs.png" width="600">
+
++ Using logistic regression to construct polynomial barrier functions to represent complex obstacles
+  + Somehow the functions in the existing package does not look good on the result, so we write our own sigmoid, regularized loss function, and the gradient.
+  + Constructing barrier functions h(x) and draw the contour to represent the obstacles.
+  + Problems: 
+    + If the obstacles are too small, the obstacle/free space ratio is too small, the simulating of polygons will be effected.
+    + There are other points (mostly outside the map) that satisfy $$\beta z^T = 0$$, so as shown in the [figure](#image-anchor), there will be other dots and lines.
+    + Other problems such as local minima due to there may be indentation of some edges of the polygons.
+
+<a name="image-anchor"></a>
+<img src="./results/lr_classify.png" width="600">

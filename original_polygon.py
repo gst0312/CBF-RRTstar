@@ -5,8 +5,9 @@ import math
 
 # Expand the given polygon by a specified safe distance to create a buffer zone around it
 def expand_poly(points, sd):
-    points.append(points[0])  # add the first point to create a 'closed loop'
-    x, y = zip(*points)  # create lists of x and y values
+    points_closed = points.copy()
+    points_closed.append(points_closed[0])  # add the first point to create a 'closed loop'
+    x, y = zip(*points_closed)
 
     # add the second point and make it an array
     x = np.append(x, x[1])
@@ -71,7 +72,7 @@ def sample_points(x, y):
             # Calculate the slope of the current edge
             slope = (ys[i + 1] - ys[i]) / (xs[i + 1] - xs[i])
             # Calculate the length of the edge
-            length = math.sqrt(((ys[i + 1] - ys[i]) ** 2) + ((xs[i + 1] - xs[i]) ** 2))
+            length = ((ys[i + 1] - ys[i]) ** 2) + ((xs[i + 1] - xs[i]) ** 2) ** 0.5
 
             if slope > 1e5 or slope < -1e5:  # Check if the slope is very large
                 # Calculate the inverse slope
@@ -164,15 +165,14 @@ def draw_poly(obs, sd):
     for new_points in new_all_points:
         plt.plot(new_points[:, 0], new_points[:, 1], 'r-')
 
-    plt.scatter(x_p[p_value == 0], y_p[p_value == 0], c='blue', label='Free Space', s=3)
-    plt.scatter(x_p[p_value == 1], y_p[p_value == 1], c='red', label='Obstacle', s=3)
-
-    # 只在第一次绘制标签，避免重复
-    handles, labels = plt.gca().get_legend_handles_labels()
-    by_label = dict(zip(labels, handles))
-    plt.legend(by_label.values(), by_label.keys(), fontsize='large', markerscale=5)
-
-    plt.xlabel('X')
-    plt.ylabel('Y')
-    plt.show()
-
+    # plt.scatter(x_p[p_value == 0], y_p[p_value == 0], c='blue', label='Free Space', s=3)
+    # plt.scatter(x_p[p_value == 1], y_p[p_value == 1], c='red', label='Obstacle', s=3)
+    #
+    # # 只在第一次绘制标签，避免重复
+    # handles, labels = plt.gca().get_legend_handles_labels()
+    # by_label = dict(zip(labels, handles))
+    # plt.legend(by_label.values(), by_label.keys(), fontsize='large', markerscale=5)
+    #
+    # plt.xlabel('X')
+    # plt.ylabel('Y')
+    # plt.show()
