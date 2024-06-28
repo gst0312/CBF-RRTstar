@@ -29,57 +29,57 @@ def creat_init_feat_matrix(data):
 
 
 ######################## For logistic regression #######################
-def sig(theta, x):
-    theta = np.ravel(theta)
-    theta = np.array([theta])
-    z = np.clip(np.dot(x, theta.T), -500, 500)  # 限制值的范围
+def sig(beta, x):
+    beta = np.ravel(beta)
+    beta = np.array([beta])
+    z = np.clip(np.dot(x, beta.T), -500, 500)  # 限制值的范围
     return 1 / (1 + np.exp(-z))
 
 
-def Loss(theta, x, y):
-    y_hat = sig(theta, x)
+def Loss(beta, x, y):
+    y_hat = sig(beta, x)
     m = np.shape(y)[0]
     epsilon = 1e-15  # 小常数
     return (-1 / m) * (np.dot(y.T, np.log(y_hat + epsilon)) + np.dot((1 - y.T), np.log(1 - y_hat + epsilon)))
 
 
-def reg_Loss(theta, x, y, lamb=1):
-    theta_1 = theta[1:]
+def reg_Loss(beta, x, y, lamb=1):
+    theta_1 = beta[1:]
     regularized_term = (lamb / (2 * len(x))) * np.power(theta_1, 2).sum()
-    return Loss(theta, x, y) + regularized_term
+    return Loss(beta, x, y) + regularized_term
 
 
-def dLoss(theta, x, y):
-    d = sig(theta, x) - y
+def dLoss(beta, x, y):
+    d = sig(beta, x) - y
     dt = np.dot(x.T, d)
     m = np.shape(y)[0]
-    grad = np.zeros(len(theta))
-    for i in range(len(theta)):
+    grad = np.zeros(len(beta))
+    for i in range(len(beta)):
         grad[i] = (1 / m) * (dt[i][0])
     return grad
 
 
-def dreg_Loss(theta, x, y, lamb=1):
-    theta_1 = theta[1:]
-    regularized_theta = (lamb / len(x)) * theta_1
+def dreg_Loss(beta, x, y, lamb=1):
+    beta_1 = beta[1:]
+    regularized_theta = (lamb / len(x)) * beta_1
     regularized_term = np.concatenate([np.array([0]), regularized_theta])
-    return dLoss(theta, x, y) + regularized_term
+    return dLoss(beta, x, y) + regularized_term
 
 
-def h(theda, x1, x2, power=4):
+def h(beta, x1, x2, power=4):
     X = [1]
     for i in range(power + 1):
         for j in range(i + 1):
             X.append(np.power(x1, i - j) * np.power(x2, j))
     del X[1]
-    return np.dot(X, theda.T)
+    return np.dot(X, beta.T)
 
 
-def draw_boundary(theda):
+def draw_boundary(beta):
     x1 = np.arange(0, 100, 1)
     x2 = np.arange(0, 100, 1)
     X1, X2 = np.meshgrid(x1, x2)
-    z = h(theda, X1, X2)
+    z = h(beta, X1, X2)
     plt.contour(X1, X2, z, [0])
 
 
