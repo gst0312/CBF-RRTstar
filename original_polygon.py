@@ -163,7 +163,7 @@ def draw_poly(obs, sd):
     plt.figure(figsize=(10, 8))
 
     for new_points in new_all_points:
-        plt.plot(new_points[:, 0], new_points[:, 1], 'r-')
+        plt.plot(new_points[:, 0], new_points[:, 1])
 
     # plt.scatter(x_p[p_value == 0], y_p[p_value == 0], c='blue', label='Free Space', s=3)
     # plt.scatter(x_p[p_value == 1], y_p[p_value == 1], c='red', label='Obstacle', s=3)
