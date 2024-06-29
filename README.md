@@ -17,15 +17,20 @@
 
   + draw the grid map and obstacles: `draw_poly(obs_list, sd)`
 
-<img src="./results/originobs.png" width="600">
+<div style="text-align: center;">
+    <img src="./results/originobs.png" width="600">
+</div>
+
 
 + Using logistic regression to construct polynomial barrier functions to represent complex obstacles
-  + Somehow the functions in the existing package does not look good on the result, so we write our own sigmoid, regularized loss function, and the gradient.
+  + Somehow the functions in the existing package do not look good on the simulation result, so we write our own sigmoid, regularized loss function, and the gradient.
   + Constructing polynomial barrier function h(x) and draw the contour to represent the obstacles.
   + Problems & future work: 
     + If the obstacles are too small, then the obstacle/free space ratio is too small, causing the simulating of polygons being affected.
     + There are other points (mostly outside the map) that satisfy $$\beta z^T = 0$$ so as shown in the [figure](#image-anchor), there will be dots and lines other than just the obstacles.
     + Other problems such as local minima due to there may be indentation of some edges of the polygons.
 
+<div style="text-align: center;">
 <a name="image-anchor"></a>
 <img src="./results/lr_classify.png" width="600">
+</div>
