@@ -1,8 +1,5 @@
 import pandas as pd
-import torch
 from scipy.optimize import fmin_bfgs
-from torch import nn
-from torch.optim import LBFGS
 
 from original_polygon import *
 
@@ -67,12 +64,36 @@ def dreg_Loss(beta, x, y, lamb=1):
 
 
 def h(beta, x1, x2, power=4):
-    X = [1]
+    # 检查输入是否是网格
+    is_grid = x1.ndim == 2 and x2.ndim == 2
+
+    # 如果是网格，暂时将其展平
+    if is_grid:
+        original_shape = x1.shape
+        x1, x2 = x1.flatten(), x2.flatten()
+
+    # 创建特征矩阵
+    X = [np.ones_like(x1)]  # 添加偏置项
     for i in range(power + 1):
         for j in range(i + 1):
             X.append(np.power(x1, i - j) * np.power(x2, j))
-    del X[1]
-    return np.dot(X, beta.T)
+    del X[1]  # 删除第二个元素，保持与原函数一致
+
+    # 将特征列表转换为矩阵
+    X = np.array(X).T
+
+    # 确保 beta 是正确的形状（列向量）
+    if beta.ndim == 1:
+        beta = beta.reshape(-1, 1)
+
+    # 计算结果
+    result = np.dot(X, beta).flatten()
+
+    # 如果输入是网格，将结果重塑为原始形状
+    if is_grid:
+        result = result.reshape(original_shape)
+
+    return result
 
 
 def draw_boundary(beta):

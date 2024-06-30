@@ -173,6 +173,6 @@ def draw_poly(obs, sd):
     # by_label = dict(zip(labels, handles))
     # plt.legend(by_label.values(), by_label.keys(), fontsize='large', markerscale=5)
     #
-    # plt.xlabel('X')
-    # plt.ylabel('Y')
+    plt.xlabel('X')
+    plt.ylabel('Y')
     # plt.show()

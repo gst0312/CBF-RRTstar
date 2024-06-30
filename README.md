@@ -32,5 +32,5 @@
 
 <div style="text-align: center;">
 <a name="image-anchor"></a>
-<img src="./results/lr_classify.png" width="600">
+<img src="./results/numti_classify.png" width="600">
 </div>
