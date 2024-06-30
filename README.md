@@ -30,4 +30,4 @@
     + Other problems such as local minima due to there may be indentation of some edges of the polygons.
 
 <a name="image-anchor"></a>
-<img src="./results/numti_classify.png" width="600">
+<img src="./results/multi_classify.png" width="600">
