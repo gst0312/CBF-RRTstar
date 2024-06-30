@@ -17,9 +17,8 @@
 
   + draw the grid map and obstacles: `draw_poly(obs_list, sd)`
 
-<div style="text-align: center;">
-    <img src="./results/originobs.png" width="600">
-</div>
+<img src="./results/originobs.png" width="600">
+
 
 
 + Using logistic regression to construct polynomial barrier functions to represent complex obstacles
@@ -30,7 +29,5 @@
     + There are other points (mostly outside the map) that satisfy $$\beta z^T = 0$$ so as shown in the [figure](#image-anchor), there will be dots and lines other than just the obstacles.
     + Other problems such as local minima due to there may be indentation of some edges of the polygons.
 
-<div style="text-align: center;">
 <a name="image-anchor"></a>
 <img src="./results/numti_classify.png" width="600">
-</div>
