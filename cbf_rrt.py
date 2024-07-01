@@ -76,21 +76,31 @@ class RRT:
             if self.check_collision(new_node, self.obstacle_list, self.robot_radius):
                 self.node_list.append(new_node)
 
-            if animation and i % 5 == 0:
+            if animation:
                 self.draw_graph(rnd_node)
 
-            if self.calc_dist_to_goal(self.node_list[-1].x,
-                                      self.node_list[-1].y) <= self.expand_dis:
-                final_node = self.steer(self.node_list[-1], self.end,
-                                        self.expand_dis)
-                if self.check_collision(
-                        final_node, self.obstacle_list, self.robot_radius):
+            if self.calc_dist_to_goal(self.node_list[-1].x, self.node_list[-1].y) <= self.expand_dis:
+                final_node = self.steer(self.node_list[-1], self.end, self.expand_dis)
+                if self.check_collision(final_node, self.obstacle_list, self.robot_radius):
                     return self.generate_final_course(len(self.node_list) - 1)
 
-            if animation and i % 5:
-                self.draw_graph(rnd_node)
-
         return None  # cannot find path
+
+    def get_random_node(self):
+        if random.randint(0, 100) > self.goal_sample_rate:
+            rnd = self.Node(
+                random.uniform(self.min_rand, self.max_rand),
+                random.uniform(self.min_rand, self.max_rand))
+        else:  # goal point sampling
+            rnd = self.Node(self.end.x, self.end.y)
+        return rnd
+
+    @staticmethod
+    def get_nearest_node_index(node_list, rnd_node):
+        dlist = [(node.x - rnd_node.x) ** 2 + (node.y - rnd_node.y) ** 2 for node in node_list]
+        min_ind = dlist.index(min(dlist))
+
+        return min_ind
 
     def steer(self, from_node, to_node, extend_length=float("inf")):
 
@@ -122,29 +132,29 @@ class RRT:
 
         return new_node
 
-    def generate_final_course(self, goal_ind):
-        path = [[self.end.x, self.end.y]]
-        node = self.node_list[goal_ind]
-        while node.parent is not None:
-            path.append([node.x, node.y])
-            node = node.parent
-        path.append([node.x, node.y])
+    @staticmethod
+    def calc_distance_and_angle(from_node, to_node):
+        dx = to_node.x - from_node.x
+        dy = to_node.y - from_node.y
+        d = math.hypot(dx, dy)
+        theta = math.atan2(dy, dx)
+        return d, theta
 
-        return path
+    @staticmethod
+    def check_collision(node, obstacle_list, robot_radius):
 
-    def calc_dist_to_goal(self, x, y):
-        dx = x - self.end.x
-        dy = y - self.end.y
-        return math.hypot(dx, dy)
+        if node is None:
+            return False
 
-    def get_random_node(self):
-        if random.randint(0, 100) > self.goal_sample_rate:
-            rnd = self.Node(
-                random.uniform(self.min_rand, self.max_rand),
-                random.uniform(self.min_rand, self.max_rand))
-        else:  # goal point sampling
-            rnd = self.Node(self.end.x, self.end.y)
-        return rnd
+        for (ox, oy, size) in obstacle_list:
+            dx_list = [ox - x for x in node.path_x]
+            dy_list = [oy - y for y in node.path_y]
+            d_list = [dx * dx + dy * dy for (dx, dy) in zip(dx_list, dy_list)]
+
+            if min(d_list) <= (size + robot_radius) ** 2:
+                return False  # collision
+
+        return True  # safe
 
     def draw_graph(self, rnd=None):
         plt.clf()
@@ -178,37 +188,20 @@ class RRT:
         yl = [y + size * math.sin(np.deg2rad(d)) for d in deg]
         plt.plot(xl, yl, color)
 
-    @staticmethod
-    def get_nearest_node_index(node_list, rnd_node):
-        dlist = [(node.x - rnd_node.x) ** 2 + (node.y - rnd_node.y) ** 2
-                 for node in node_list]
-        minind = dlist.index(min(dlist))
+    def generate_final_course(self, goal_ind):
+        path = [[self.end.x, self.end.y]]
+        node = self.node_list[goal_ind]
+        while node.parent is not None:
+            path.append([node.x, node.y])
+            node = node.parent
+        path.append([node.x, node.y])
 
-        return minind
+        return path
 
-    @staticmethod
-    def check_collision(node, obstacleList, robot_radius):
-
-        if node is None:
-            return False
-
-        for (ox, oy, size) in obstacleList:
-            dx_list = [ox - x for x in node.path_x]
-            dy_list = [oy - y for y in node.path_y]
-            d_list = [dx * dx + dy * dy for (dx, dy) in zip(dx_list, dy_list)]
-
-            if min(d_list) <= (size + robot_radius) ** 2:
-                return False  # collision
-
-        return True  # safe
-
-    @staticmethod
-    def calc_distance_and_angle(from_node, to_node):
-        dx = to_node.x - from_node.x
-        dy = to_node.y - from_node.y
-        d = math.hypot(dx, dy)
-        theta = math.atan2(dy, dx)
-        return d, theta
+    def calc_dist_to_goal(self, x, y):
+        dx = x - self.end.x
+        dy = y - self.end.y
+        return math.hypot(dx, dy)
 
 
 def main(gx=6.0, gy=10.0):
