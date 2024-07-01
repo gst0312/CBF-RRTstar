@@ -1,0 +1,12 @@
+name: cbf_rrtstar
+channels:
+  - conda-forge
+dependencies:
+  - python=3.12
+  - pip
+  - scipy
+  - numpy
+  - cvxpy
+  - matplotlib
+  - pandas
+  - cvxopt

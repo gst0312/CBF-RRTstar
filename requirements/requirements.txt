@@ -1,0 +1,10 @@
+numpy == 2.0.0
+scipy == 1.13.1
+matplotlib == 3.9.0
+cvxpy == 1.5.2
+pytest == 8.2.2 # For unit test
+pytest-xdist == 3.6.1 # For unit test
+mypy == 1.10.0 # For unit test
+ruff == 0.4.10 # For unit test
+pandas == latest
+cvxopt == latest
