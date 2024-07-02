@@ -65,14 +65,14 @@ conda env create -f requirements/environment.yml
 
     + QP:
 
-      $$
-      \begin{aligned}
-      \text{minimize} \quad & \frac{1}{2}w^2 \\
-      \text{subject to} \quad & -B_{ddot_w}w \geq B_{ddot_c} + k_2\dot{h}(x) + k_1h(x) \\
-      & -1.05 \leq w \leq 1.05
-      \end{aligned}
-      $$
-  
+$$
+\begin{aligned}
+\text{minimize} & \quad \frac{1}{2} w^2 \\
+\text{subject to} & \quad -B_{ddot_w} w \geq B_{ddot_c} + k_2 \dot{h}(x) + k_1 h(x) \\
+& \quad -1.05 \leq w \leq 1.05
+\end{aligned}
+$$
+
   too much math part I'll just skip
 
 <img src="./results/CBF_RRT.png" width="600">
