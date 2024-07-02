@@ -106,6 +106,7 @@ def draw_boundary(beta):
 
 def multi_classify(obs_list, sd):
     beta_opts = []
+    z = []
     for points in obs_list:
         x_p, y_p, p_value, _ = each_poly(points, sd)
 
@@ -115,11 +116,11 @@ def multi_classify(obs_list, sd):
         beta_opt_i = -1 * np.ravel(beta_opt_i)
         beta_opts.append(beta_opt_i)
 
-    draw_poly(obs_list, sd)
-    for i in range(len(beta_opts)):
-        draw_boundary(beta_opts[i])
-    plt.xlim([-10, 110])
-    plt.ylim([-10, 90])
-    plt.show()
+    # draw_poly(obs_list, sd)
+    # for i in range(len(beta_opts)):
+    #     draw_boundary(beta_opts[i])
+    # plt.xlim([-10, 110])
+    # plt.ylim([-10, 90])
+    # plt.show()
 
     return beta_opts

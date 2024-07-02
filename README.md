@@ -1,6 +1,16 @@
 # CBF-RRTstar
 
-+ Sampling equidistant n points on the map and labeled each point either free space or obstacle
+1. Clone this repo and install the required libraries
+
+```
+git clone https://github.com/shaygong322/CBF-RRTstar.git
+```
+
+```
+conda env create -f requirements/environment.yml
+```
+
+2. Sampling equidistant n points on the map and labeled each point either free space or obstacle
 
   + obstacles points:
 
@@ -19,9 +29,7 @@
 
 <img src="./results/originobs.png" width="600">
 
-
-
-+ Using logistic regression to construct polynomial barrier functions to represent complex obstacles
+3. Using logistic regression to construct polynomial barrier functions to represent complex obstacles
   + Somehow the functions in the existing package do not look good on the simulation result, so we write our own sigmoid, regularized loss function, and the gradient.
   + Constructing polynomial barrier function h(x) and draw the contour to represent the obstacles.
   + Problems & future work: 
@@ -31,3 +39,7 @@
 
 <a name="image-anchor"></a>
 <img src="./results/multi_classify.png" width="600">
+
+4. CBF-RRT
+
+<img src="./results/CBF_RRT.png" width="600">
