@@ -76,3 +76,15 @@ $$
   too much math part I'll just skip
 
 <img src="./results/CBF_RRT.png" width="600">
+
+
+
+5. CBF-RRTstar
+
++ Every node has another attribute `cost` 
++ Every time after steering, we need to `choose_parent` and `rewire`
++ Also, if one wants to continue optimizing after finding the path, just set `search_until_max_iter=True`. The results are shown below, the first figure is when simply finding the path then return, and the second one is continue searching until reach the maximum iteration.
+
+<img src="./results/star_not_max.png" width="600">
+
+<img src="./results/star_max.png" width="600">

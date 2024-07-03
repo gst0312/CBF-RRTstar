@@ -1,4 +1,5 @@
-from cbf_rrt import *
+# from cbf_rrt import *
+from cbf_rrt_star import *
 show_animation = True
 
 points1 = [[5, 71], [18, 74], [21, 64], [7, 62]]
@@ -14,15 +15,25 @@ obs_list = [points]
 sd = 4
 # draw_poly(obs_list, sd)
 beta_opts = multi_classify(obs_list, sd)
-plan = RRT(
+# plan = RRT(
+#     start=[9, 8],
+#     goal=[74.5, 68],
+#     obstacle_list=obs_list,
+#     xrandArea=[0, 100],
+#     yrandArea=[0, 80],
+#     beta_opts=beta_opts,
+#     )
+# path = plan.cbf_rrt_planning(show_animation)
+plan = RRTStar(
     start=[9, 8],
     goal=[74.5, 68],
     obstacle_list=obs_list,
     xrandArea=[0, 100],
     yrandArea=[0, 80],
     beta_opts=beta_opts,
+    search_until_max_iter=True,
     )
-path = plan.cbf_rrt_planning(show_animation)
+path = plan.cbf_rrt_star_planning(show_animation)
 
 if path is None:
     print("Cannot find path")
