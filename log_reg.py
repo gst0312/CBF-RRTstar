@@ -112,7 +112,7 @@ def multi_classify(obs_list, sd):
 
         data = constr_dataframe(x_p, y_p, p_value)
         features, label, beta = creat_init_feat_matrix(data)
-        beta_opt_i = fmin_bfgs(reg_Loss, beta, dreg_Loss, args=(features, label))
+        beta_opt_i = fmin_bfgs(reg_Loss, beta, dreg_Loss, args=(features, label), disp=False)
         beta_opt_i = -1 * np.ravel(beta_opt_i)
         beta_opts.append(beta_opt_i)
 

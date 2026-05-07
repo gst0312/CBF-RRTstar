@@ -1,91 +1,129 @@
 # CBF-RRTstar
 
-This is a reproduction of the method described in [this article🔗](https://arxiv.org/pdf/2210.03704).
+This repository reproduces the method from [Safe Path Planning for Polynomial Shape Obstacles via Control Barrier Functions and Logistic Regression](https://arxiv.org/abs/2210.03704).
 
-1. Clone this repo and install the required libraries
+The paper combines three pieces:
 
-```
-git clone https://github.com/shaygong322/CBF-RRTstar.git
-```
+1. Build polynomial barrier functions for polygon-shaped obstacles with logistic regression.
+2. Use multi-step CBF steering for RRT/RRT* expansion.
+3. Use RRT* `ChooseParent` and `Rewire` to improve path cost after nodes are added.
 
-```
+## Setup
+
+```bash
 conda env create -f requirements/environment.yml
+conda activate cbf_rrtstar
 ```
 
+or install with pip:
 
+```bash
+pip install -r requirements/requirements.txt
+```
 
-2. Sampling equidistant n points on the map and labeled each point either free space or obstacle
+Run the demo:
 
-  + obstacles points:
+```bash
+python driver.py
+```
 
-  ```python
-  points1 = [[5, 71], [18, 74], [21, 64], [7, 62]]
-  points2 = [[15, 40], [25, 47], [25, 38]]
-  points3 = [[49, 46], [51, 56], [60, 54], [57, 45]]
-  points4 = [[88, 32], [93, 35], [94, 30]]
-  points5 = [[50, 17], [56, 20], [57, 16], [52, 14]]
-  obs_list = [points1, points2, points3, points4, points5]
-  ```
+Run regression tests:
 
-  + safe distance to create a buffer zone around obstacles: `sd = 4`
+```bash
+pytest -q
+```
 
-  + draw the grid map and obstacles: `draw_poly(obs_list, sd)`
+Regenerate the figures under `results/`:
+
+```bash
+python scripts/generate_results.py
+```
+
+## Obstacle And Barrier Construction
+
+Obstacles are provided as polygon vertices. The example map from the original README is:
+
+```python
+points1 = [[5, 71], [18, 74], [21, 64], [7, 62]]
+points2 = [[15, 40], [25, 47], [25, 38]]
+points3 = [[49, 46], [51, 56], [60, 54], [57, 45]]
+points4 = [[88, 32], [93, 35], [94, 30]]
+points5 = [[50, 17], [56, 20], [57, 16], [52, 14]]
+obs_list = [points1, points2, points3, points4, points5]
+sd = 4
+```
+
+`sd` expands each polygon to create a safety buffer. `multi_classify(obs_list, sd)` samples the map, labels points as free/occupied, and fits one fourth-order polynomial barrier per obstacle. The implementation treats `h(x) > 0` as safe and `h(x) <= 0` as unsafe.
 
 <img src="./results/originobs.png" width="600">
 
-
-
-3. Using logistic regression to construct polynomial barrier functions to represent complex obstacles
-
-  + Somehow the functions in the existing package do not look good on the simulation result, so we write our own sigmoid, regularized loss function, and the gradient.
-  + Constructing polynomial barrier function h(x) and draw the contour to represent the obstacles.
-  + Problems & future work: 
-    + If the obstacles are too small, then the obstacle/free space ratio is too small, causing the simulating of polygons being affected.
-    + There are other points (mostly outside the map) that satisfy $$\beta z^T = 0$$ so as shown in the figure, there will be dots and lines other than just the obstacles.
-    + Other problems such as local minima due to there may be indentation of some edges of the polygons.
-
 <img src="./results/multi_classify.png" width="600">
 
+## CBF-RRT
 
+`cbf_rrt_steer` replaces the usual RRT `steer + collision_check` expansion. The default steering horizon is split into `steps=4` small moves, matching the multi-step steering described in the paper.
 
-4. CBF-RRT
+For each small move, the code evaluates:
 
-+ Instead of using `steer` and `check_collision` to find the new_node and determine whether to add into the node_list, we use `cbf_rrt_steer` .
+```python
+barrier_function(beta, x1, x2)
+barrier_function_derivative(beta, x1, x2, theta, v)
+barrier_function_second_derivative(beta, x1, x2, theta, v)
+```
 
-+ `cbf_rrt_steer`: it's a 4-step steering controller, for every new node, we construct a QP to steer it away from the obstacle.
+The relative-degree-2 CBF condition is:
 
-  + `barrier_function(each, x1, x2)` `barrier_function_derivative(each, x1, x2, theta, v)` `barrier_function_second_derivative(each, x1, x2, theta, v)`
+```text
+B_ddot_c + B_ddot_w * w + k2 * h_dot + k1 * h >= 0
+```
 
-  + CBF constraint:
+The solver form used in code is therefore:
 
-    + $\ddot{b}(x,u) = B_{ddot_c} + B_{ddot_w}w$  where $B_{ddot_c}$ is autonomous part, $B_{ddot_w}$ is relevant to control input $w$ 
+```text
+minimize    1/2 * (w - w_ref)^2
+subject to  -B_ddot_w * w <= B_ddot_c + k2 * h_dot + k1 * h
+            -1.05 <= w <= 1.05
+```
 
-    + $B_{ddot_c} + B_{ddot_w}w + k_2\dot{h}(x) + k_1h(x) \geq 0$
-
-      which means $-B_{ddot_w}w \geq B_{ddot_c} + k_2\dot{h}(x) + k_1h(x)$
-
-    + QP:
-
-$$
-\begin{aligned}
-\text{minimize} & \quad \frac{1}{2} w^2 \\
-\text{subject to} & \quad -B_{ddot_w} w \geq B_{ddot_c} + k_2 \dot{h}(x) + k_1 h(x) \\
-& \quad -1.05 \leq w \leq 1.05
-\end{aligned}
-$$
-
-  too much math part I'll just skip
+Because this QP has only one scalar variable (`w`), the implementation solves it analytically by intersecting linear bounds and projecting `w_ref` into the feasible interval. No `cvxopt` or `cvxpy` dependency is required.
 
 <img src="./results/CBF_RRT.png" width="600">
 
+## CBF-RRT*
 
+`RRTStar` keeps two node lists, consistent with the paper:
 
-5. CBF-RRTstar
+```text
+tree_list: only the final node of each multi-step expansion
+all_list: every intermediate node generated by CBF steering
+```
 
-+ Every node has another attribute `cost` 
-+ Every time after steering, we need to `choose_parent` and `rewire`
-+ Also, if one wants to continue optimizing after finding the path, just set `search_until_max_iter=True`. The results are shown below, the first figure is when simply finding the path then return, and the second one is continue searching until reach the maximum iteration.
+After steering, each node in `all_list` goes through:
+
+```python
+near_inds = find_near_nodes(...)
+node = choose_parent(...)
+rewire(node, ...)
+```
+
+`ChooseParent` and `Rewire` use straight-line barrier collision checks, as described in the paper, rather than solving another CBF-QP for every candidate edge.
+
+Set `search_until_max_iter=True` to keep optimizing after the first feasible path is found.
 
 <img src="./results/star_not_max.png" width="600">
 
 <img src="./results/star_max.png" width="600">
+
+## Updates
+
+### 2026-05-07
+
+- Rechecked the RRT/CBF-RRT* implementation against the paper flow: multi-step CBF steering still expands from `tree_list`, while `all_list` stores every intermediate node used for plotting and final path reconstruction.
+- Fixed CBF steering so it no longer overshoots nearby samples or the goal, and replaced the scalar QP dependency with an analytic one-dimensional bound projection.
+- Fixed barrier derivative evaluation near `x=0` or `y=0`, short-edge collision checking, obstacle-list mutation during plotting, polygon edge sampling, and point-in-polygon handling.
+- Fixed RRT* parent selection and rewiring so `path_x/path_y` and descendant costs stay consistent after parent changes, with cycle prevention during rewiring.
+- Added regression tests under `tests/` for steering, collision checking, derivatives, plotting side effects, `choose_parent`, and `rewire`.
+- Added `scripts/generate_results.py` to regenerate all PNGs under `results/` with a non-interactive Matplotlib backend.
+- Regenerated all result figures. The RRT figure now runs to `RRT_MAX_ITER=1200`; max-iteration RRT* figures now run to `RRT_STAR_MAX_ITER=1000` with a larger visualization-time rewiring radius.
+
+Known limitations remain from the paper and the original implementation: logistic-regression barriers can produce extra zero contours outside the intended obstacle, small obstacles may be poorly represented when the occupied/free sample ratio is too low, and complex concave shapes can still lead to imperfect barriers.

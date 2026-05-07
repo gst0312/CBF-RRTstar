@@ -6,7 +6,5 @@ dependencies:
   - pip
   - scipy
   - numpy
-  - cvxpy
   - matplotlib
   - pandas
-  - cvxopt

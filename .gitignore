@@ -1,2 +1,11 @@
-*pycache*
+__pycache__/
+*.py[cod]
+*$py.class
+
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.matplotlib-cache/
+
+.DS_Store
 .idea/

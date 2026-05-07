@@ -1,5 +1,7 @@
 # from cbf_rrt import *
 from cbf_rrt_star import *
+from matplotlib import pyplot as plt
+
 show_animation = True
 
 points1 = [[5, 71], [18, 74], [21, 64], [7, 62]]

@@ -77,7 +77,6 @@ class RRTStar():
                 if last_index is not None:
                     return generate_final_course(self.end, self.all_list, last_index)
 
-        print("reached max iteration")
         last_index = search_best_goal_node(self.end, self.all_list, self.expand_dis, self.beta_opts)
         if last_index is not None:
             return generate_final_course(self.end, self.all_list, last_index)

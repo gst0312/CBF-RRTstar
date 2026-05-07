@@ -1,3 +1,5 @@
+import math
+
 from rrt_planning_tools import *
 
 class RRT:
@@ -14,6 +16,7 @@ class RRT:
                  goal_sample_rate=15,
                  max_iter=5000,
                  steps=4,
+                 search_until_max_iter=False,
                  ):
         self.all_list = []
         self.tree_list = []
@@ -31,10 +34,13 @@ class RRT:
         self.max_iter = max_iter
         self.obstacle_list = obstacle_list
         self.steps = steps
+        self.search_until_max_iter = search_until_max_iter
 
     def cbf_rrt_planning(self, animation=True):
         self.tree_list = [self.start]
         self.all_list = [self.start]
+        best_goal_ind = None
+        best_goal_cost = float("inf")
         for i in range(self.max_iter):
             rnd_node = get_random_node(self.goal_sample_rate, self.min_xrand, self.max_xrand, self.min_yrand, self.max_yrand, self.end)
             nearest_ind = get_nearest_node_index(self.tree_list, rnd_node)
@@ -66,6 +72,22 @@ class RRT:
             if calc_dist_to_goal(self.tree_list[-1], self.end) <= self.expand_dis:
                 final_node = get_final_node(self.tree_list[-1], self.end)
                 if check_collision(final_node, self.beta_opts):
-                    return generate_final_course(self.end, self.all_list, len(self.all_list) - 1)
+                    goal_ind = len(self.all_list) - 1
+                    goal_cost = _path_cost(self.all_list[goal_ind]) + calc_dist_to_goal(self.all_list[goal_ind], self.end)
+                    if goal_cost < best_goal_cost:
+                        best_goal_ind = goal_ind
+                        best_goal_cost = goal_cost
+                    if not self.search_until_max_iter:
+                        return generate_final_course(self.end, self.all_list, best_goal_ind)
 
+        if best_goal_ind is not None:
+            return generate_final_course(self.end, self.all_list, best_goal_ind)
         return None
+
+
+def _path_cost(node):
+    cost = 0.0
+    while node.parent is not None:
+        cost += math.hypot(node.x - node.parent.x, node.y - node.parent.y)
+        node = node.parent
+    return cost

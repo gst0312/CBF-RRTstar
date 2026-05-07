@@ -23,8 +23,10 @@ def expand_poly(points, sd):
         d2 = ((x[i + 1] - x[i + 2]) ** 2 + (y[i + 1] - y[i + 2]) ** 2) ** 0.5
         # 两条边的夹角
         ab = (x[i + 1] - x[i]) * (x[i + 1] - x[i + 2]) + (y[i + 1] - y[i]) * (y[i + 1] - y[i + 2])
-        cosA = ab / (d1 * d2)
+        cosA = np.clip(ab / (d1 * d2), -1.0, 1.0)
         sinA = (1 - cosA ** 2) ** 0.5
+        if abs(sinA) < 1e-12:
+            raise ValueError("cannot expand polygon with a near-collinear vertex")
 
         # 判断凹凸点（叉积）
         P1P2_x = x[i + 1] - x[i]
@@ -65,25 +67,15 @@ def sample_points(x, y):
 
     # Loop through each edge of the polygon (from each point to the next)
     for i in range(len(xs) - 1):
-        if xs[i + 1] == xs[i]:  # Avoid division by zero
-            xtemp = np.repeat(xs[i], int(abs(ys[i + 1] - ys[i])))
-            ytemp = np.linspace(ys[i], ys[i + 1], int(abs(ys[i + 1] - ys[i])))
-        else:
-            # Calculate the slope of the current edge
-            slope = (ys[i + 1] - ys[i]) / (xs[i + 1] - xs[i])
-            # Calculate the length of the edge
-            length = ((ys[i + 1] - ys[i]) ** 2) + ((xs[i + 1] - xs[i]) ** 2) ** 0.5
-
-            if slope > 1e5 or slope < -1e5:  # Check if the slope is very large
-                # Calculate the inverse slope
-                inverse_slope = (xs[i + 1] - xs[i]) / (ys[i + 1] - ys[i])
-                # Generate sample points along the y direction
-                ytemp = np.linspace(ys[i], ys[i + 1], int(length))
-                xtemp = inverse_slope * (ytemp - ys[i]) + xs[i]
-            else:
-                # Generate sample points along the x direction
-                xtemp = np.linspace(xs[i], xs[i + 1], int(length))
-                ytemp = slope * (xtemp - xs[i]) + ys[i]
+        dx = xs[i + 1] - xs[i]
+        dy = ys[i + 1] - ys[i]
+        length = math.hypot(dx, dy)
+        if length == 0:
+            continue
+        num = max(2, int(math.ceil(length)) + 1)
+        ratio = np.linspace(0.0, 1.0, num)
+        xtemp = xs[i] + dx * ratio
+        ytemp = ys[i] + dy * ratio
 
         # Append the sample points to the lists
         xadd = np.append(xadd, xtemp)
@@ -99,25 +91,25 @@ def sample_points(x, y):
 
 # Determine if a point is inside a polygon using the ray-casting algorithm.
 def is_in_poly(p, points):
-    x = np.zeros(len(points))
     px, py = p
-    is_in = False
-    for i, corner in enumerate(points):
-        next_i = i + 1 if i + 1 < len(points) else 0
-        x1, y1 = corner
-        x2, y2 = points[next_i]
-        if (x1 == px and y1 == py) or (x2 == px and y2 == py):  # if point is on vertex
-            is_in = True
-            break
-        if min(y1, y2) <= py <= max(y1, y2):  # find horizontal edges of polygon
-            x[i] = x1 + (py - y1) * (x2 - x1) / (y2 - y1)
-            if x[i] == px:  # if point is on edge
-                is_in = True
-                break
-            elif x[i] > px:  # if point is on left-side of line
-                if x[i] != x[i - 1]:
-                    is_in = not is_in
-    return is_in
+    is_inside = False
+    for i, (x1, y1) in enumerate(points):
+        x2, y2 = points[(i + 1) % len(points)]
+        if _point_on_segment(px, py, x1, y1, x2, y2):
+            return True
+        if (y1 > py) != (y2 > py):
+            x_intersect = (x2 - x1) * (py - y1) / (y2 - y1) + x1
+            if px < x_intersect:
+                is_inside = not is_inside
+    return is_inside
+
+
+def _point_on_segment(px, py, x1, y1, x2, y2):
+    cross = (px - x1) * (y2 - y1) - (py - y1) * (x2 - x1)
+    if abs(cross) > 1e-9:
+        return False
+    return min(x1, x2) - 1e-9 <= px <= max(x1, x2) + 1e-9 and \
+        min(y1, y2) - 1e-9 <= py <= max(y1, y2) + 1e-9
 
 
 def each_poly(points, sd):
