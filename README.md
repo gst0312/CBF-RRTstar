@@ -55,9 +55,9 @@ sd = 4
 
 `sd` expands each polygon to create a safety buffer. `multi_classify(obs_list, sd)` samples the map, labels points as free/occupied, and fits one fourth-order polynomial barrier per obstacle. The implementation treats `h(x) > 0` as safe and `h(x) <= 0` as unsafe.
 
-<img src="./results/originobs.png" width="600">
+<img src="./results/originobs.png?v=20260507-23012dd" width="600">
 
-<img src="./results/multi_classify.png" width="600">
+<img src="./results/multi_classify.png?v=20260507-23012dd" width="600">
 
 ## CBF-RRT
 
@@ -87,7 +87,7 @@ subject to  -B_ddot_w * w <= B_ddot_c + k2 * h_dot + k1 * h
 
 Because this QP has only one scalar variable (`w`), the implementation solves it analytically by intersecting linear bounds and projecting `w_ref` into the feasible interval. No `cvxopt` or `cvxpy` dependency is required.
 
-<img src="./results/CBF_RRT.png" width="600">
+<img src="./results/CBF_RRT.png?v=20260507-23012dd" width="600">
 
 ## CBF-RRT*
 
@@ -110,9 +110,9 @@ rewire(node, ...)
 
 Set `search_until_max_iter=True` to keep optimizing after the first feasible path is found.
 
-<img src="./results/star_not_max.png" width="600">
+<img src="./results/star_not_max.png?v=20260507-23012dd" width="600">
 
-<img src="./results/star_max.png" width="600">
+<img src="./results/star_max.png?v=20260507-23012dd" width="600">
 
 ## Updates
 
