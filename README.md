@@ -10,7 +10,7 @@ The paper combines three pieces:
 
 ## Updates
 
-The implementation was cleaned up to match the paper flow more closely, add regression tests, and regenerate the result figures.
+- [2026-05-07] Cleaned up the reproduction to better match the paper flow, added regression tests, and regenerated all result figures.
 
 ## Setup
 
