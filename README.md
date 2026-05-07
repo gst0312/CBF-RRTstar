@@ -8,6 +8,10 @@ The paper combines three pieces:
 2. Use multi-step CBF steering for RRT/RRT* expansion.
 3. Use RRT* `ChooseParent` and `Rewire` to improve path cost after nodes are added.
 
+## Updates
+
+The implementation was cleaned up to match the paper flow more closely, add regression tests, and regenerate the result figures.
+
 ## Setup
 
 ```bash
@@ -55,9 +59,9 @@ sd = 4
 
 `sd` expands each polygon to create a safety buffer. `multi_classify(obs_list, sd)` samples the map, labels points as free/occupied, and fits one fourth-order polynomial barrier per obstacle. The implementation treats `h(x) > 0` as safe and `h(x) <= 0` as unsafe.
 
-<img src="./results/originobs.png?v=20260507-23012dd" width="600">
+<img src="./results/obstacle_map.png" width="600">
 
-<img src="./results/multi_classify.png?v=20260507-23012dd" width="600">
+<img src="./results/barrier_contours.png" width="600">
 
 ## CBF-RRT
 
@@ -87,7 +91,7 @@ subject to  -B_ddot_w * w <= B_ddot_c + k2 * h_dot + k1 * h
 
 Because this QP has only one scalar variable (`w`), the implementation solves it analytically by intersecting linear bounds and projecting `w_ref` into the feasible interval. No `cvxopt` or `cvxpy` dependency is required.
 
-<img src="./results/CBF_RRT.png?v=20260507-23012dd" width="600">
+<img src="./results/cbf_rrt_result.png" width="600">
 
 ## CBF-RRT*
 
@@ -110,20 +114,8 @@ rewire(node, ...)
 
 Set `search_until_max_iter=True` to keep optimizing after the first feasible path is found.
 
-<img src="./results/star_not_max.png?v=20260507-23012dd" width="600">
+<img src="./results/rrtstar_first_path.png" width="600">
 
-<img src="./results/star_max.png?v=20260507-23012dd" width="600">
-
-## Updates
-
-### 2026-05-07
-
-- Rechecked the RRT/CBF-RRT* implementation against the paper flow: multi-step CBF steering still expands from `tree_list`, while `all_list` stores every intermediate node used for plotting and final path reconstruction.
-- Fixed CBF steering so it no longer overshoots nearby samples or the goal, and replaced the scalar QP dependency with an analytic one-dimensional bound projection.
-- Fixed barrier derivative evaluation near `x=0` or `y=0`, short-edge collision checking, obstacle-list mutation during plotting, polygon edge sampling, and point-in-polygon handling.
-- Fixed RRT* parent selection and rewiring so `path_x/path_y` and descendant costs stay consistent after parent changes, with cycle prevention during rewiring.
-- Added regression tests under `tests/` for steering, collision checking, derivatives, plotting side effects, `choose_parent`, and `rewire`.
-- Added `scripts/generate_results.py` to regenerate all PNGs under `results/` with a non-interactive Matplotlib backend.
-- Regenerated all result figures. The RRT figure now runs to `RRT_MAX_ITER=1200`; max-iteration RRT* figures now run to `RRT_STAR_MAX_ITER=1000` with a larger visualization-time rewiring radius.
+<img src="./results/rrtstar_optimized.png" width="600">
 
 Known limitations remain from the paper and the original implementation: logistic-regression barriers can produce extra zero contours outside the intended obstacle, small obstacles may be poorly represented when the occupied/free sample ratio is too low, and complex concave shapes can still lead to imperfect barriers.

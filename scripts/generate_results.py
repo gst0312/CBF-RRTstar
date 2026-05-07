@@ -60,12 +60,12 @@ def main():
     planning_betas = multi_classify(_copy_obstacles(PLANNING_OBSTACLES), SAFE_DISTANCE)
 
     random.seed(11)
-    _save_rrt(planning_betas, "CBF_RRT.png")
+    _save_rrt(planning_betas, "cbf_rrt_result.png")
 
     random.seed(13)
     _save_rrt_star(
         planning_betas,
-        "star_not_max.png",
+        "rrtstar_first_path.png",
         search_until_max_iter=False,
         max_iter=RRT_STAR_FIRST_PATH_MAX_ITER,
     )
@@ -73,7 +73,7 @@ def main():
     random.seed(17)
     _save_rrt_star(
         planning_betas,
-        "star_max.png",
+        "rrtstar_optimized.png",
         search_until_max_iter=True,
         max_iter=RRT_STAR_MAX_ITER,
     )
@@ -81,7 +81,7 @@ def main():
     random.seed(17)
     _save_rrt_star(
         planning_betas,
-        "CBF_RRTstar.png",
+        "cbf_rrtstar_result.png",
         search_until_max_iter=True,
         max_iter=RRT_STAR_MAX_ITER,
     )
@@ -98,7 +98,7 @@ def _save_origin_obstacles(obstacles):
     plt.ylim([-10, 90])
     plt.grid(True)
     plt.tight_layout()
-    plt.savefig(RESULTS_DIR / "originobs.png", dpi=100)
+    plt.savefig(RESULTS_DIR / "obstacle_map.png", dpi=100)
     plt.close()
 
 
@@ -111,7 +111,7 @@ def _save_barrier_plot(obstacles, beta_opts):
     plt.ylim([-10, 90])
     plt.grid(True)
     plt.tight_layout()
-    plt.savefig(RESULTS_DIR / "multi_classify.png", dpi=100)
+    plt.savefig(RESULTS_DIR / "barrier_contours.png", dpi=100)
     plt.close()
 
 
